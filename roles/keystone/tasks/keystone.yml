@@ -1,0 +1,53 @@
+---
+
+  - set_fact:
+       keystone_db_name: keystone
+
+  - name: Create a database for keystone
+    shell: mysql -u root -p{{mysql_db_pass}} -e 'CREATE DATABASE {{keystone_db_name}};'
+
+  - name: Set the required privilages to keystone database 
+    template: src=../templates/grant_prev.j2 dest=/tmp/grant_prev.sh mode=0777 
+
+  - name: Grant Permission
+    shell: ./grant_prev.sh chdir=/tmp/ 
+  
+  - name: Install all the keystone packages
+    apt: name={{ item }} state=present 
+    with_items:
+        - keystone
+    
+  - name: Update /etc/keystone/keystone.conf
+    ini_file2: dest=/etc/keystone/keystone.conf
+               section=database
+               option=connection
+               value="mysql+pymysql://keystone:{{keystone.db_password}}@controller/keystone"
+               
+  - ini_file2: dest=/etc/keystone/keystone.conf
+               section=token
+               option=provider
+               value=fernet
+
+  - name: Populate the keystone database
+    shell: su -s /bin/sh -c "keystone-manage db_sync" keystone
+
+  - name: Initialize fernet key repos
+    shell: |
+         keystone-manage fernet_setup --keystone-user keystone --keystone-group keystone
+         keystone-manage credential_setup --keystone-user keystone --keystone-group keystone
+
+  - name: Bootstrap the keystone service
+    shell: |
+         keystone-manage bootstrap --bootstrap-password {{keystone.bootstrap_pass}} \
+         --bootstrap-admin-url http://controller:35357/v3/ \
+         --bootstrap-internal-url http://controller:5000/v3/ \
+         --bootstrap-public-url http://controller:5000/v3/ \
+         --bootstrap-region-id RegionOne
+
+  - name: Configure apache http server
+    lineinfile: dest=/etc/apache2/apache2.conf regex='^ServerName.*' line='ServerName controller'
+
+  - service: name=apache2 state=restart
+
+  - file: path=/var/lib/keystone/keystone.db state=absent
+ 

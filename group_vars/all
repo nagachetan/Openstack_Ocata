@@ -1,0 +1,9 @@
+# RabbitMQ Information
+rabbit_user: openstack
+rabbit_pass: RABBIT_PASS
+
+# Keystone Information
+keystone:
+  db_user: keystone
+  db_password: KEYSTONE_DBPASS 
+  bootstrap_pass: ADMIN_PASS

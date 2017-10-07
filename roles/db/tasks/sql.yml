@@ -1,0 +1,51 @@
+---
+
+  - name: Install mysql pkgs
+    apt: name="{{item}}" update_cache=yes state=present
+    with_items:
+        - mariadb-server
+        - python-pymysql
+
+  - name: Update config file with controller node ip
+    template: src='../templates/99-openstack.j2' dest='/etc/mysql/mariadb.conf.d/99-openstack.cnf' backup=yes
+    notify:
+      - restart mysql
+
+  - name: Reload privilege tables
+    command: 'mysql -ne "{{ item }}"'
+    with_items:
+        - FLUSH PRIVILEGES
+
+  - name: Remove anonymous users
+    command: 'mysql -ne "{{ item }}"'
+    with_items:
+        - DELETE FROM mysql.user WHERE User=''
+
+  - name: Disallow root login remotely
+    command: 'mysql -ne "{{ item }}"'
+    with_items:
+        - DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1')
+
+  - name: Remove test database and access to it
+    command: 'mysql -ne "{{ item }}"'
+    with_items:
+        - DROP DATABASE test
+        - DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%'
+    ignore_errors: True
+
+  - name: Reload privilege tables
+    command: 'mysql -ne "{{ item }}"'
+    with_items:
+        - FLUSH PRIVILEGES
+
+  - set_fact:
+       mysql_db_pass: "root{{ 100 | random }}"
+    run_once: yes
+
+  - name: Update the db root credentials
+    mysql_user: name=root host={{ item }} password={{mysql_db_pass}}
+    with_items:
+        - localhost
+ 
+  - lineinfile: dest={{output_file}} line="mysql user:root and password:{{mysql_db_pass}}" insertafter=EOF
+

@@ -1,0 +1,4 @@
+---
+
+  - include: keystone.yml
+  - include: configure.yml

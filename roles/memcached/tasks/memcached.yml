@@ -1,0 +1,18 @@
+---
+
+  - name: Install memcached pkgs
+    apt: name="{{item}}" update_cache=yes state=present
+    with_items:
+        - memcached
+        - python-memcache
+
+  - name: Update /etc/memcached.conf with mgmt ip of controller node
+    lineinfile: 
+       dest: /etc/memcached.conf
+       state: present
+       regexp: '^-l.*'
+       line: "-l {{controller_ip}}"
+    notify:
+      - restart memcached
+
+

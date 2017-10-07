@@ -1,0 +1,4 @@
+controller_ip: 10.10.0.11
+
+# Output file 
+output_file: /opt/ostack/output.txt

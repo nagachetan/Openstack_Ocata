@@ -1,0 +1,24 @@
+---
+
+  - name: Create Domain, projects, users and roles 
+    shell: openstack project create --domain default --description "Service Project" service
+    with_items:
+        - { cmd: 'openstack project create --domain default --description "Service Project" service' }
+        - { cmd: 'openstack project create --domain default --description "Demo Project" demo' }
+        - { cmd: 'openstack user create --domain default --password demo' }
+        - { cmd: 'openstack role create user' }
+        - { cmd: 'openstack role add --project demo --user demo user' }
+    environment:
+          OS_USERNAME: admin
+          OS_PASSWORD: ADMIN_PASS
+          OS_PROJECT_NAME: admin
+          OS_USER_DOMAIN_NAME: Default
+          OS_PROJECT_DOMAIN_NAME: Default
+          OS_AUTH_URL: http://controller:35357/v3
+          OS_IDENTITY_API_VERSION: 3
+ 
+  - name: Verification
+    shell: openstack --os-auth-url http://controller:35357/v3 \
+           --os-project-domain-name default --os-user-domain-name default \
+           --os-project-name admin --os-username admin token issue
+ 

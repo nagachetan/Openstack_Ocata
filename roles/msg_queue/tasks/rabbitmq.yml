@@ -1,0 +1,10 @@
+---
+
+  - name: Install RabbitMQ messaging queue
+    shell: name=rabbitmq-server state=present update_cache=yes
+ 
+  - name: Create rabbitmq user and set password
+    shell: rabbitmqctl add_user {{rabbit_user}} {{rabbit_pass}}
+ 
+  - name: Permit read and write access
+    shell: rabbitmqctl set_permissions openstack ".*" ".*" ".*"

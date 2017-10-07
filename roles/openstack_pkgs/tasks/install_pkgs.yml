@@ -1,0 +1,15 @@
+---
+
+  - name: Install openstack pkgs
+    apt: name="{{item}}" update_cache=yes state=present
+    with_items:
+        - software-properties-common
+  
+  - name: Add the apt repo
+    shell: add-apt-repository cloud-archive:ocata
+
+  - apt: update_cache=yes upgrade=dist
+
+  - apt: name=python-openstackclient state=present
+
+  - file: path={{output}} state=touch
