@@ -1,11 +1,11 @@
 ---
 
   - name: Create Domain, projects, users and roles 
-    shell: openstack project create --domain default --description "Service Project" service
+    shell: {{item.cmd}}
     with_items:
         - { cmd: 'openstack project create --domain default --description "Service Project" service' }
         - { cmd: 'openstack project create --domain default --description "Demo Project" demo' }
-        - { cmd: 'openstack user create --domain default --password demo' }
+        - { cmd: 'openstack user create --domain default --password {{keystone.user_password}} demo' }
         - { cmd: 'openstack role create user' }
         - { cmd: 'openstack role add --project demo --user demo user' }
     environment:

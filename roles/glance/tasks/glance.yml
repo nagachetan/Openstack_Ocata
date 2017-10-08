@@ -1,0 +1,99 @@
+---
+
+  - set_fact:
+       glance_db_name: glance
+
+  - name: Create a database for glance
+    shell: mysql -u root -p{{mysql_db_pass}} -e 'CREATE DATABASE {{keystone_db_name}};'
+
+  - name: Set the required privilages to glance database 
+    template: src=../templates/grant_prev.j2 dest=/tmp/grant_prev.sh mode=0777 
+
+  - name: Grant Permission
+    shell: ./grant_prev.sh chdir=/tmp/ 
+  
+
+  - name: Create Domain, projects, users and roles
+    shell: {{item.cmd}}
+    with_items:
+        - { cmd: 'openstack user create --domain default --password {{glance.user_password}} glance' }
+        - { cmd: 'openstack role add --project service --user glance admin' }
+        - { cmd: 'openstack service create --name glance --description "OpenStack Image" image' }
+        - { cmd: 'openstack endpoint create --region RegionOne image public http://controller:9292' }
+        - { cmd: 'openstack endpoint create --region RegionOne image internal http://controller:9292' }
+        - { cmd: 'openstack endpoint create --region RegionOne image admin http://controller:9292' }
+    environment:
+          OS_USERNAME: admin
+          OS_PASSWORD: ADMIN_PASS
+          OS_PROJECT_NAME: admin
+          OS_USER_DOMAIN_NAME: Default
+          OS_PROJECT_DOMAIN_NAME: Default
+          OS_AUTH_URL: http://controller:35357/v3
+          OS_IDENTITY_API_VERSION: 3
+
+    
+  - name: Install all the glance packages
+    apt: name={{ item }} state=present 
+    with_items:
+        - glance
+
+  - name: Update /etc/glance/glance-api.conf
+    ini_file2: dest=/etc/glance/glance-api.conf
+               section=database
+               option=connection
+               value="mysql+pymysql://glance:{{glance.db_password}}@controller/glance"
+               
+  - ini_file2: dest=/etc/glance/glance.conf
+               section=keystone_authtoken
+               option={{item.opt}}
+               value={{item.val}}
+    with_items:
+        - { opt: "auth_uri", val: "http://controller:5000" }
+        - { opt: "auth_url", val: "http://controller:35357" }
+        - { opt: "memcached_servers", val: "controller:11211" }
+        - { opt: "auth_type", val: "password" }
+        - { opt: "project_domain_name", val: "default" }
+        - { opt: "user_domain_name", val: "default" }
+        - { opt: "project_name", val: "service" }
+        - { opt: "username", val: "glance" }
+        - { opt: "password", val: "{{glance.db_password}}" }
+
+  - ini_file2: dest=/etc/glance/glance-api.conf
+               section=paste_deploy
+               option=flavor
+               value="keystone"
+               
+  - ini_file2: dest=/etc/glance/glance-registry.conf
+               section=database
+               option=connection
+               value="mysql+pymysql://glance:{{glance.db_password}}@controller/glance"
+               
+  - ini_file2: dest=/etc/glance/glance-registry.conf
+               section=keystone_authtoken
+               option={{item.opt}}
+               value={{item.val}}
+    with_items:
+        - { opt: "auth_uri", val: "http://controller:5000" }
+        - { opt: "auth_url", val: "http://controller:35357" }
+        - { opt: "memcached_servers", val: "controller:11211" }
+        - { opt: "auth_type", val: "password" }
+        - { opt: "project_domain_name", val: "default" }
+        - { opt: "user_domain_name", val: "default" }
+        - { opt: "project_name", val: "service" }
+        - { opt: "username", val: "glance" }
+        - { opt: "password", val: "{{glance.db_password}}" }
+
+  - ini_file2: dest=/etc/glance/glance-registry.conf
+               section=paste_deploy
+               option=flavor
+               value="keystone"
+               
+  - name: Populate the keystone database
+    shell: su -s /bin/sh -c "glance-manage db_sync" glance
+
+  - service: name={{item}} state=restart
+    with_items:
+        - glance-registry
+        - glance-api
+
+ 
