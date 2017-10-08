@@ -1,0 +1,28 @@
+---
+
+   - name: Openstack Ocata Installation
+     hosts: controller
+
+     vars_files: 
+       - ../group_vars/all
+       - ../group_vars/input_file
+     
+     become: true
+     
+     roles:
+       - name: Install openstack packages 
+         role: ../roles/openstack_pkgs
+       - name: Database
+         role: ../roles/db
+       - name: Queue
+         role: ../roles/msg_queue
+       - name: memcache
+         role: ../roles/memcached
+       - name: Install keystone
+         role: ../roles/keystone
+       - name: Install glance
+         role: ../roles/glance
+       - name: Install nova
+         role: ../roles/nova_controller
+       
+

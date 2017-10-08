@@ -1,0 +1,4 @@
+---
+
+  - include: nova.yml
+  - include: configure.yml

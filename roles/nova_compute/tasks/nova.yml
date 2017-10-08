@@ -1,0 +1,60 @@
+---
+
+  - name: Install and Configure Compute node
+    apt: name=nova-compute state=present
+
+  - name: Update /etc/nova/nova.conf
+    ini_file2: dest=/etc/nova/nova.conf
+               section="{{item.section}}"
+               option="{{item.opt}}"
+               value="{{item.value}}"
+    with_items:
+        - { section: 'DEFAULT', opt: "transport_url", value: "rabbit://openstack:RABBIT_PASS@controller" }
+        - { section: 'api', opt: "auth_strategy", value: "keystone" }
+        - { section: 'DEFAULT', opt: 'my_ip', value: "{{compute_ip}}" } 
+        - { section: 'DEFAULT', opt: 'use_neutron', value: 'True' } 
+        - { section: 'DEFAULT', opt: 'firewall_driver', value: 'nova.virt.firewall.NoopFirewallDriver' }
+        - { section: 'vnc', opt: 'enabled', value: 'True' } 
+        - { section: 'vnc', opt: 'vncserver_listen', value: '0.0.0.0' } 
+        - { section: 'vnc', opt: 'vncserver_proxyclient_address', value: '$my_ip' } 
+        - { section: 'vnc', opt: 'novncproxy_base_url', value: 'http://controller:6080/vnc_auto.html' } 
+        - { section: 'glance', opt: 'api_servers', value: 'http://controller:9292' } 
+        - { section: 'oslo_concurrency', opt: 'lock_path', value: '/var/lib/nova/tmp' } 
+         
+  - ini_file2: dest=/etc/nova/nova.conf
+               section=keystone_authtoken
+               option={{item.opt}}
+               value={{item.val}}
+    with_items:
+        - { opt: "auth_uri", val: "http://controller:5000" }
+        - { opt: "auth_url", val: "http://controller:35357" }
+        - { opt: "memcached_servers", val: "controller:11211" }
+        - { opt: "auth_type", val: "password" }
+        - { opt: "project_domain_name", val: "default" }
+        - { opt: "user_domain_name", val: "default" }
+        - { opt: "project_name", val: "service" }
+        - { opt: "username", val: "nova" }
+        - { opt: "password", val: "{{nova.password}}" }
+
+  - ini_file2: dest=/etc/nova/nova.conf
+               section=placement
+               option={{item.opt}}
+               value={{item.val}}
+    with_items:
+        - { opt: "os_region_name", val: "RegionOne" }
+        - { opt: "project_domain_name", val: "Default" }
+        - { opt: "project_name", val: "service" }
+        - { opt: "auth_type", val: "password" }
+        - { opt: "user_domain_name", val: "Default" }
+        - { opt: "auth_url", val: "http://controller:35357/v3" }
+        - { opt: "username", val: "placement" }
+        - { opt: "password", val: "nova.placement_pass" }
+
+  - ini_file2: dest=/etc/nova/nova-compute.conf
+               section=libvirt
+               option=virt_type
+               value=qemu
+
+  - service: name=nova-compute state=restart
+
+

@@ -1,0 +1,18 @@
+---
+
+   - name: Openstack Ocata Installation
+     hosts: compute
+
+     vars_files: 
+       - ../group_vars/all
+       - ../group_vars/input_file
+     
+     become: true
+     
+     roles:
+       - name: Install openstack packages 
+         role: ../roles/openstack_pkgs
+       - name: Install nova
+         role: ../roles/nova_compute
+       
+

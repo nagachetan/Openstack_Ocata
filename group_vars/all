@@ -15,4 +15,10 @@ glance:
   db_password: GLANCE_DBPASS
   user_password: admin
   
-
+# Nova Information
+nova: 
+  db_user: nova
+  db_password: NOVA_DBPASS
+  user_password: admin
+  placement_pass: PLACEMENT_PASS
+  password: NOVA_PASS  

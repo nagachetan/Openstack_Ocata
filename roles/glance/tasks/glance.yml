@@ -4,14 +4,13 @@
        glance_db_name: glance
 
   - name: Create a database for glance
-    shell: mysql -u root -p{{mysql_db_pass}} -e 'CREATE DATABASE {{keystone_db_name}};'
+    shell: mysql -u root -p{{mysql_db_pass}} -e 'CREATE DATABASE {{glance_db_name}};'
 
   - name: Set the required privilages to glance database 
     template: src=../templates/grant_prev.j2 dest=/tmp/grant_prev.sh mode=0777 
 
   - name: Grant Permission
     shell: ./grant_prev.sh chdir=/tmp/ 
-  
 
   - name: Create Domain, projects, users and roles
     shell: {{item.cmd}}
@@ -30,7 +29,6 @@
           OS_PROJECT_DOMAIN_NAME: Default
           OS_AUTH_URL: http://controller:35357/v3
           OS_IDENTITY_API_VERSION: 3
-
     
   - name: Install all the glance packages
     apt: name={{ item }} state=present 
@@ -88,7 +86,7 @@
                option=flavor
                value="keystone"
                
-  - name: Populate the keystone database
+  - name: Populate the glance database
     shell: su -s /bin/sh -c "glance-manage db_sync" glance
 
   - service: name={{item}} state=restart

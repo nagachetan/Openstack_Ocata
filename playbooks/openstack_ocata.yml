@@ -1,0 +1,14 @@
+---
+
+   - name: Openstack Ocata Installation
+     hosts: client1
+
+     vars_files:
+       - ../group_vars/all
+       - ../group_vars/input_file
+
+     become: true
+
+     - include: openstack_ocata_controller.yml
+     - include: openstack_ocata_compute.yml
+     - include:   

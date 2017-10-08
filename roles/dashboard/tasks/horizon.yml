@@ -1,0 +1,7 @@
+---
+
+  - name: Install Openstack-Dashboard
+    apt: name=openstack-dashboard state=present
+  
+  - name: Update the config /etc/openstack-dashboard/local_settings.py
+    lineinfile:  

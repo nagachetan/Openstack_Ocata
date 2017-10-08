@@ -1,0 +1,154 @@
+---
+
+  - name: Create a database for nova
+    shell: mysql -u root -p{{mysql_db_pass}} -e 'CREATE DATABASE {{item}};'
+    with_items:
+        - nova_api
+        - nova
+        - nova_cell0
+
+  - name: Set the required privilages to nova database 
+    template: src=../templates/grant_prev.j2 dest=/tmp/grant_prev_{{item.db_name}}.sh mode=0777 
+    with_items:
+        - { db_name: nova_api }
+        - { db_name: nova }
+        - { db_name: nova_cell0 }
+
+  - name: Grant Permission
+    shell: ./grant_prev{{item.db_name}}.sh chdir=/tmp/ 
+    with_items:
+        - { db_name: nova_api }
+        - { db_name: nova }
+        - { db_name: nova_cell0 }
+  
+  - name: Create Domain, projects, users and roles
+    shell: {{item.cmd}}
+    with_items:
+        - { cmd: 'openstack user create --domain default --password {{nova.user_password}} nova' }
+        - { cmd: 'openstack role add --project service --user nova admin' }
+        - { cmd: 'openstack service create --name nova --description "OpenStack Compute" compute' }
+        - { cmd: 'openstack endpoint create --region RegionOne compute public http://controller:8774/v2.1' }
+        - { cmd: 'openstack endpoint create --region RegionOne compute internal http://controller:8774/v2.1' }
+        - { cmd: 'openstack endpoint create --region RegionOne compute admin http://controller:8774/v2.1' }
+        - { cmd: 'openstack user create --domain default --password {{nova.placement_pass}} placement' }
+        - { cmd: 'openstack role add --project service --user placement admin' }
+        - { cmd: 'openstack service create --name placement --description "Placement API" placement' }
+        - { cmd: 'openstack endpoint create --region RegionOne placement public http://controller:8778' }
+        - { cmd: 'openstack endpoint create --region RegionOne placement internal http://controller:8778' }
+        - { cmd: 'openstack endpoint create --region RegionOne placement admin http://controller:8778' }
+    environment:
+          OS_USERNAME: admin
+          OS_PASSWORD: ADMIN_PASS
+          OS_PROJECT_NAME: admin
+          OS_USER_DOMAIN_NAME: Default
+          OS_PROJECT_DOMAIN_NAME: Default
+          OS_AUTH_URL: http://controller:35357/v3
+          OS_IDENTITY_API_VERSION: 3
+
+  - name: Install all the nova packages
+    apt: name={{ item }} state=present 
+    with_items:
+        - nova-api
+        - nova-conductor
+        - nova-consoleauth
+        - nova-novncproxy
+        - nova-scheduler
+        - nova-placement-api
+
+  - name: Update /etc/nova/nova.conf
+    ini_file2: dest=/etc/nova/nova.conf
+               section="{{item.section}}"
+               option=connection
+               value="{{item.value}}"
+    with_items: 
+        - { section: 'api_database', value: "mysql+pymysql://nova:{{nova.db_password}}@controller/nova_api" }
+        - { section: 'database', value: "mysql+pymysql://nova:{{nova.db_password}}@controller/nova" }
+               
+  - ini_file2: dest=/etc/nova/nova.conf
+               section=DEFAULT
+               option="{{item.opt}}"
+               value="{{item.val}}"
+    with_items:
+        - { opt: "transport_url", val: "rabbit://openstack:{{rabbit_pass}}@controller" }
+        - { opt: "my_ip", val: "{{controller_ip}}" }
+        - { opt: "use_neutron", val: "True" }
+        - { opt: "firewall_driver", val: "nova.virt.firewall.NoopFirewallDriver" }               
+
+  - ini_file2: dest=/etc/nova/nova.conf
+               section=api
+               option=auth_strategy
+               value="keystone"
+               
+  - ini_file2: dest=/etc/nova/nova.conf
+               section=keystone_authtoken
+               option={{item.opt}}
+               value={{item.val}}
+    with_items:
+        - { opt: "auth_uri", val: "http://controller:5000" }
+        - { opt: "auth_url", val: "http://controller:35357" }
+        - { opt: "memcached_servers", val: "controller:11211" }
+        - { opt: "auth_type", val: "password" }
+        - { opt: "project_domain_name", val: "default" }
+        - { opt: "user_domain_name", val: "default" }
+        - { opt: "project_name", val: "service" }
+        - { opt: "username", val: "nova" }
+        - { opt: "password", val: "{{nova.db_password}}" }
+
+  - ini_file2: dest=/etc/nova/nova.conf
+               section=vnc
+               option="{{item.opt}}"
+               value="{{item.val}}"
+    with_items:
+        - { opt: "enabled", val: "true" }
+        - { opt: "vncserver_listen", val: "$my_ip" }
+        - { opt: "vncserver_proxyclient_address", val: "$my_ip" }
+              
+
+  - ini_file2: dest=/etc/nova/nova.conf
+               section=glance
+               option=api_servers
+               value="http://controller:9292"
+               
+  - ini_file2: dest=/etc/nova/nova.conf
+               section=oslo_concurrency
+               option=lock_path
+               value="/var/lib/nova/tmp"
+               
+  - ini_file2: dest=/etc/nova/nova.conf
+               section=placement
+               option="{{item.opt}}"
+               value="{{item.val}}"
+    with_items:
+        - { opt: "os_region_name", val: "RegionOne" }
+        - { opt: "project_domain_name", val: "Default" }
+        - { opt: "project_name", val: "service" }
+        - { opt: "auth_type", val: "password" }
+        - { opt: "user_domain_name", val: "Default" }
+        - { opt: "auth_url", val: "http://controller:35357/v3" }
+        - { opt: "username", val: "placement" }
+        - { opt: "password", val: "{{nova.placement_pass}}" }
+ 
+  - name: Populate the nova-api database
+    shell: su -s /bin/sh -c "nova-manage api_db sync" nova
+
+  - name: Register cell0 database
+    shell: su -s /bin/sh -c "nova-manage cell_v2 map_cell0" nova
+
+  - name: Create cell1 Cell
+    shell: su -s /bin/sh -c "nova-manage cell_v2 create_cell --name=cell1 --verbose" nova
+
+  - name: Populate the nova database
+    shell: su -s /bin/sh -c "nova-manage db sync" nova
+
+  - name: Verify nova cell0 and cell1 are registered correctly
+    shell: nova-manage cell_v2 list_cells
+
+  - service: name={{item}} state=restart
+    with_items:
+        - nova-api
+        - nova-consoleauth
+        - nova-scheduler
+        - nova-conductor
+        - nova-novncproxy
+
+ 
