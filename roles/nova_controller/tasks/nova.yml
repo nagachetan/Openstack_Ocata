@@ -22,7 +22,7 @@
         - { db_name: nova_cell0 }
   
   - name: Create Domain, projects, users and roles
-    shell: {{item.cmd}}
+    shell: "{{item.cmd}}"
     with_items:
         - { cmd: 'openstack user create --domain default --password {{nova.user_password}} nova' }
         - { cmd: 'openstack role add --project service --user nova admin' }
@@ -56,7 +56,7 @@
         - nova-placement-api
 
   - name: Update /etc/nova/nova.conf
-    ini_file2: dest=/etc/nova/nova.conf
+    ini_file: dest=/etc/nova/nova.conf
                section="{{item.section}}"
                option=connection
                value="{{item.value}}"
@@ -64,7 +64,7 @@
         - { section: 'api_database', value: "mysql+pymysql://nova:{{nova.db_password}}@controller/nova_api" }
         - { section: 'database', value: "mysql+pymysql://nova:{{nova.db_password}}@controller/nova" }
                
-  - ini_file2: dest=/etc/nova/nova.conf
+  - ini_file: dest=/etc/nova/nova.conf
                section=DEFAULT
                option="{{item.opt}}"
                value="{{item.val}}"
@@ -74,12 +74,12 @@
         - { opt: "use_neutron", val: "True" }
         - { opt: "firewall_driver", val: "nova.virt.firewall.NoopFirewallDriver" }               
 
-  - ini_file2: dest=/etc/nova/nova.conf
+  - ini_file: dest=/etc/nova/nova.conf
                section=api
                option=auth_strategy
                value="keystone"
                
-  - ini_file2: dest=/etc/nova/nova.conf
+  - ini_file: dest=/etc/nova/nova.conf
                section=keystone_authtoken
                option={{item.opt}}
                value={{item.val}}
@@ -94,7 +94,7 @@
         - { opt: "username", val: "nova" }
         - { opt: "password", val: "{{nova.db_password}}" }
 
-  - ini_file2: dest=/etc/nova/nova.conf
+  - ini_file: dest=/etc/nova/nova.conf
                section=vnc
                option="{{item.opt}}"
                value="{{item.val}}"
@@ -104,17 +104,17 @@
         - { opt: "vncserver_proxyclient_address", val: "$my_ip" }
               
 
-  - ini_file2: dest=/etc/nova/nova.conf
+  - ini_file: dest=/etc/nova/nova.conf
                section=glance
                option=api_servers
                value="http://controller:9292"
                
-  - ini_file2: dest=/etc/nova/nova.conf
+  - ini_file: dest=/etc/nova/nova.conf
                section=oslo_concurrency
                option=lock_path
                value="/var/lib/nova/tmp"
                
-  - ini_file2: dest=/etc/nova/nova.conf
+  - ini_file: dest=/etc/nova/nova.conf
                section=placement
                option="{{item.opt}}"
                value="{{item.val}}"

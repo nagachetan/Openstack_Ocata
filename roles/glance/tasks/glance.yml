@@ -13,7 +13,7 @@
     shell: ./grant_prev.sh chdir=/tmp/ 
 
   - name: Create Domain, projects, users and roles
-    shell: {{item.cmd}}
+    shell: "{{item.cmd}}"
     with_items:
         - { cmd: 'openstack user create --domain default --password {{glance.user_password}} glance' }
         - { cmd: 'openstack role add --project service --user glance admin' }
@@ -36,12 +36,12 @@
         - glance
 
   - name: Update /etc/glance/glance-api.conf
-    ini_file2: dest=/etc/glance/glance-api.conf
+    ini_file: dest=/etc/glance/glance-api.conf
                section=database
                option=connection
                value="mysql+pymysql://glance:{{glance.db_password}}@controller/glance"
                
-  - ini_file2: dest=/etc/glance/glance.conf
+  - ini_file: dest=/etc/glance/glance.conf
                section=keystone_authtoken
                option={{item.opt}}
                value={{item.val}}
@@ -56,17 +56,17 @@
         - { opt: "username", val: "glance" }
         - { opt: "password", val: "{{glance.db_password}}" }
 
-  - ini_file2: dest=/etc/glance/glance-api.conf
+  - ini_file: dest=/etc/glance/glance-api.conf
                section=paste_deploy
                option=flavor
                value="keystone"
                
-  - ini_file2: dest=/etc/glance/glance-registry.conf
+  - ini_file: dest=/etc/glance/glance-registry.conf
                section=database
                option=connection
                value="mysql+pymysql://glance:{{glance.db_password}}@controller/glance"
                
-  - ini_file2: dest=/etc/glance/glance-registry.conf
+  - ini_file: dest=/etc/glance/glance-registry.conf
                section=keystone_authtoken
                option={{item.opt}}
                value={{item.val}}
@@ -81,7 +81,7 @@
         - { opt: "username", val: "glance" }
         - { opt: "password", val: "{{glance.db_password}}" }
 
-  - ini_file2: dest=/etc/glance/glance-registry.conf
+  - ini_file: dest=/etc/glance/glance-registry.conf
                section=paste_deploy
                option=flavor
                value="keystone"

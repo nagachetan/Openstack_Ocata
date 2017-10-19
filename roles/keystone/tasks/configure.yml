@@ -1,7 +1,7 @@
 ---
 
   - name: Create Domain, projects, users and roles 
-    shell: {{item.cmd}}
+    shell: "{{item.cmd}}"
     with_items:
         - { cmd: 'openstack project create --domain default --description "Service Project" service' }
         - { cmd: 'openstack project create --domain default --description "Demo Project" demo' }
