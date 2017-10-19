@@ -1,0 +1,3 @@
+[controller]
+client_one ansible_ssh_host=192.168.15.5 ansible_connection=ssh ansible_ssh_user=ubuntu ansible_ssh_pass='ubuntu' ansible_sudo_pass='ubuntu'
+
