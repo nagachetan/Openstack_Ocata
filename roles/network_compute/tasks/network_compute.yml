@@ -1,0 +1,71 @@
+---
+
+  - name: Install the Components
+    apt: name="neutron-linuxbridge-agent" state=present
+
+  - ini_file: dest=/etc/neutron/neutron.conf
+               section=DEFAULT
+               option={{item.opt}}
+               value={{item.val}}
+    with_items:
+        - { opt: "transport_url", val: "rabbit://openstack:{{rabbit_pass}}@controller" }
+        - { opt: "auth_strategy", val: "keystone" }
+
+  - ini_file: dest=/etc/neutron/neutron.conf
+               section=keystone_authtoken
+               option={{item.opt}}
+               value={{item.val}}
+    with_items:
+        - { opt: "auth_uri", val: "http://controller:5000" }
+        - { opt: "auth_url", val: "http://controller:35357" }
+        - { opt: "memcached_servers", val: "controller:11211" }
+        - { opt: "auth_type", val: "password" }
+        - { opt: "project_domain_name", val: "default" }
+        - { opt: "user_domain_name", val: "default" }
+        - { opt: "project_name", val: "service" }
+        - { opt: "username", val: "neutron" }
+        - { opt: "password", val: "{{neutron.db_password}}" }
+
+  - ini_file: dest=/etc/neutron/plugins/ml2/linuxbridge_agent.ini
+               section=linux_bridge
+               option=physical_interface_mappings
+               value="provider:{{neutron.provider_interface_name}}"
+
+  - ini_file: dest=/etc/neutron/plugins/ml2/linuxbridge_agent.ini
+               section=vxlan
+               option={{item.opt}}
+               value={{item.val}}
+    with_items:
+        - { opt: "enable_vxlan", val: "true" }
+        - { opt: "local_ip", val: "{{neutron.overlay_interface_ip}}" }
+        - { opt: "l2_population", val: "true" }
+
+  - ini_file: dest=/etc/neutron/plugins/ml2/linuxbridge_agent.ini
+               section=securitygroup
+               option={{item.opt}}
+               value={{item.val}}
+    with_items:
+        - { opt: "enable_security_group", val: "true" }
+        - { opt: "firewall_driver", val: "neutron.agent.linux.iptables_firewall.IptablesFirewallDriver" }
+
+  - ini_file: dest=/etc/neutron/neutron.conf
+               section=neutron
+               option={{item.opt}}
+               value={{item.val}}
+    with_items:
+        - { opt: "url", val: "http://controller:9696" }
+        - { opt: "auth_url", val: "http://controller:35357" }
+        - { opt: "auth_type", val: "password" }
+        - { opt: "project_domain_name", val: "default" }
+        - { opt: "user_domain_name", val: "default" }
+        - { opt: "region_name", val: "RegionOne" }
+        - { opt: "project_name", val: "service" }
+        - { opt: "username", val: "neutron" }
+        - { opt: "password", val: "{{neutron.password}}" }
+
+  - name: Restart the Compute service and linux bridge agent 
+    service: name={{item.name}} state=restarted
+    with_items:
+        - { name: nova-compute }
+        - { name: neutron-linuxbridge-agent }
+

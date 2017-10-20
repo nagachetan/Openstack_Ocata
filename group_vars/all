@@ -24,7 +24,7 @@ nova:
   password: NOVA_PASS  
 
 # Neutron Information
-nova: 
+neutron: 
   db_user: neutron
   db_password: NEUTRON_DBPASS
   user_password: admin
