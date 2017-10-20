@@ -34,3 +34,13 @@ neutron:
   provider_interface_name: eth1
   # IP address of the underlying physical network interface that handles overlay networks
   overlay_interface_ip: 
+
+# Cinder Information
+cinder: 
+  db_user: cinder
+  db_password: CINDER_DBPASS
+  user_password: admin
+  placement_pass: PLACEMENT_PASS
+  password: CINDER_PASS  
+  # LVM physical volume
+  phy_vol: sdb

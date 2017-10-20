@@ -1,0 +1,92 @@
+---
+
+  - set_fact:
+       cinder_db_name: cinder
+
+  - name: Create a database for cinder
+    shell: mysql -u root -p{{mysql_db_pass}} -e 'CREATE DATABASE {{cinder_db_name}};'
+
+  - name: Set the required privilages to cinder database 
+    template: src=../templates/grant_prev.j2 dest=/tmp/grant_prev.sh mode=0777 
+
+  - name: Grant Permission
+    shell: ./grant_prev.sh chdir=/tmp/ 
+
+  - name: Create Domain, projects, users and roles
+    shell: "{{item.cmd}}"
+    with_items:
+        - { cmd: 'openstack user create --domain default --password {{cinder.user_password}} cinder' }
+        - { cmd: 'openstack role add --project service --user cinder admin' }
+        - { cmd: 'openstack service create --name cinderv2 --description "OpenStack Block Storage" volumev2' }
+        - { cmd: 'openstack service create --name cinderv3 --description "OpenStack Block Storage" volumev3' }
+        - { cmd: 'openstack endpoint create --region RegionOne volumev2 public http://controller:8776/v2/%\(project_id\)s' }
+        - { cmd: 'openstack endpoint create --region RegionOne volumev2 internal http://controller:8776/v2/%\(project_id\)s' }
+        - { cmd: 'openstack endpoint create --region RegionOne volumev2 admin http://controller:8776/v2/%\(project_id\)s' }
+        - { cmd: 'openstack endpoint create --region RegionOne volumev3 public http://controller:8776/v3/%\(project_id\)s' }
+        - { cmd: 'openstack endpoint create --region RegionOne volumev3 internal http://controller:8776/v3/%\(project_id\)s' }
+        - { cmd: 'openstack endpoint create --region RegionOne volumev3 admin http://controller:8776/v3/%\(project_id\)s' }
+    environment:
+          OS_USERNAME: admin
+          OS_PASSWORD: ADMIN_PASS
+          OS_PROJECT_NAME: admin
+          OS_USER_DOMAIN_NAME: Default
+          OS_PROJECT_DOMAIN_NAME: Default
+          OS_AUTH_URL: http://controller:35357/v3
+          OS_IDENTITY_API_VERSION: 3
+    
+  - name: Install all the cinder packages
+    apt: name={{ item }} state=present 
+    with_items:
+        - cinder-api
+        - cinder-scheduler
+
+  - name: Update /etc/cinder/cinder.conf
+    ini_file: dest=/etc/cinder/cinder.conf
+               section=database
+               option=connection
+               value="mysql+pymysql://cinder:{{cinder.db_password}}@controller/cinder"
+               
+  - ini_file: dest=/etc/cinder/cinder.conf
+               section=keystone_authtoken
+               option={{item.opt}}
+               value={{item.val}}
+    with_items:
+        - { opt: "auth_uri", val: "http://controller:5000" }
+        - { opt: "auth_url", val: "http://controller:35357" }
+        - { opt: "memcached_servers", val: "controller:11211" }
+        - { opt: "auth_type", val: "password" }
+        - { opt: "project_domain_name", val: "default" }
+        - { opt: "user_domain_name", val: "default" }
+        - { opt: "project_name", val: "service" }
+        - { opt: "username", val: "cinder" }
+        - { opt: "password", val: "{{cinder.db_password}}" }
+
+  - ini_file: dest=/etc/cinder/cinder.conf
+               section=DEFAULT
+               option={{ item.opt }}
+               value={{ item.val }}
+    with_items: 
+        - { opt: "transport_url", val: "rabbit://openstack:{{rabbit_pass}}@controller" }
+        - { opt: "auth_strategy", val: "keystone" }
+        - { opt: "my_ip", val: "{{controller_ip}}" }
+               
+  - ini_file: dest=/etc/cinder/cinder.conf
+               section=oslo_concurrency
+               option=lock_path
+               value="/var/lib/cinder/tmp"
+               
+  - name: Populate the Block Storage Database
+    shell: su -s /bin/sh -c "cinder-manage db sync" cinder
+
+  - ini_file: dest=/etc/nova/nova.conf
+               section=cinder
+               option=cinder
+               value=RegionOne
+
+  - name: Restart the Compute API service and Block storage service
+    service: name={{item}} state=restarted
+    with_items: 
+        - { name: "nova-api" }
+        - { name: "cinder-scheduler" }
+        - { name: "apache2" }
+

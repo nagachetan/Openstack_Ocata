@@ -1,0 +1,68 @@
+---
+
+  - name: Install the supporting utility package
+    apt: name=lvm2 state=present
+
+  - name: Create LVM physical volume
+    shell: pvcreate /dev/{{cinder.phy_vol}}
+
+  - name: Create LVM physical group
+    shell: vgcreate cinder-volumes /dev/{{cinder.phy_vol}}
+
+  - lineinfile: path=/etc/lvm/lvm.conf regex="^filter = [ " line="filter = [ "a/{{cinder.phy_vol}}/", "r/.*/"]" 
+
+  - apt: name=cinder-volume state=present
+
+  - name: Update /etc/cinder/cinder.conf
+    ini_file: dest=/etc/cinder/cinder.conf
+               section=database
+               option=connection
+               value="mysql+pymysql://cinder:{{cinder.db_password}}@controller/cinder"
+
+  - ini_file: dest=/etc/cinder/cinder.conf
+               section=keystone_authtoken
+               option={{item.opt}}
+               value={{item.val}}
+    with_items:
+        - { opt: "auth_uri", val: "http://controller:5000" }
+        - { opt: "auth_url", val: "http://controller:35357" }
+        - { opt: "memcached_servers", val: "controller:11211" }
+        - { opt: "auth_type", val: "password" }
+        - { opt: "project_domain_name", val: "default" }
+        - { opt: "user_domain_name", val: "default" }
+        - { opt: "project_name", val: "service" }
+        - { opt: "username", val: "cinder" }
+        - { opt: "password", val: "{{cinder.password}}" }
+
+  - ini_file: dest=/etc/cinder/cinder.conf
+               section=DEFAULT
+               option={{ item.opt }}
+               value={{ item.val }}
+    with_items:
+        - { opt: "transport_url", val: "rabbit://openstack:{{rabbit_pass}}@controller" }
+        - { opt: "auth_strategy", val: "keystone" }
+        - { opt: "my_ip", val: "{{block_storage_ip}}" }
+        - { opt: "enabled_backends", val: "lvm" }
+        - { opt: "glance_api_servers", val: "http://controller:9292" }
+
+  - ini_file: dest=/etc/cinder/cinder.conf
+               section=lvm
+               option={{ item.opt }}
+               value={{ item.val }}
+    with_items:
+        - { opt: "volume_driver", val: "cinder.volume.drivers.lvm.LVMVolumeDriver" }
+        - { opt: "volume_group", val: "cinder-volumes" }
+        - { opt: "iscsi_protocol", val: "iscsi" }
+        - { opt: "iscsi_helper", val: "tgtadm" }
+
+  - ini_file: dest=/etc/cinder/cinder.conf
+               section=oslo_concurrency
+               option=lock_path
+               value=/var/lib/cinder/tmp
+   
+ - name: Restart the lock Storage volume service 
+   service: name={{item}} state=restarted
+   with_items: 
+       - tgt
+       - cinder-volume 
+  

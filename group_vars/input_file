@@ -1,4 +1,5 @@
 controller_ip: 10.10.0.11
+block_storage_ip: 10.10.0.13
 
 # Output file 
 output_file: /opt/ostack/output.txt
