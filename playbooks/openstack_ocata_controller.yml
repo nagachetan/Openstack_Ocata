@@ -24,5 +24,7 @@
          role: ../roles/glance
        - name: Install nova
          role: ../roles/nova_controller
+       - name: Install cinder
+         role: ../roles/cinder_controller
        
 
