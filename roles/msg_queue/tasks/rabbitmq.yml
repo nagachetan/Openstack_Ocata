@@ -1,7 +1,7 @@
 ---
 
   - name: Install RabbitMQ messaging queue
-    shell: name=rabbitmq-server state=present update_cache=yes
+    shell: apt-get install -y rabbitmq-server 
  
   - name: Create rabbitmq user and set password
     shell: rabbitmqctl add_user {{rabbit_user}} {{rabbit_pass}}

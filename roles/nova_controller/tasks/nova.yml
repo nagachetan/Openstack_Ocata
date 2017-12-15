@@ -15,7 +15,7 @@
         - { db_name: nova_cell0 }
 
   - name: Grant Permission
-    shell: ./grant_prev{{item.db_name}}.sh chdir=/tmp/ 
+    shell: ./grant_prev_{{item.db_name}}.sh chdir=/tmp/ 
     with_items:
         - { db_name: nova_api }
         - { db_name: nova }

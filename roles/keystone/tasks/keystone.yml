@@ -13,7 +13,7 @@
     shell: ./grant_prev.sh chdir=/tmp/ 
   
   - name: Install all the keystone packages
-    apt: name={{ item }} state=present 
+    shell: apt-get install -y {{ item }} 
     with_items:
         - keystone
     
@@ -45,9 +45,9 @@
          --bootstrap-region-id RegionOne
 
   - name: Configure apache http server
-    lineinfile: dest=/etc/apache2/apache2.conf regex='^ServerName.*' line='ServerName controller'
+    lineinfile: dest=/etc/apache2/apache2.conf  line='ServerName controller'
 
-  - service: name=apache2 state=restart
+  - service: name=apache2 state=restarted
 
   - file: path=/var/lib/keystone/keystone.db state=absent
  

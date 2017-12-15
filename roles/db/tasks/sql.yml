@@ -1,15 +1,15 @@
 ---
 
   - name: Install mysql pkgs
-    apt: name="{{item}}" update_cache=yes state=present
+    shell: apt-get install -y "{{item}}" 
     with_items:
         - mariadb-server
         - python-pymysql
 
   - name: Update config file with controller node ip
     template: src='../templates/99-openstack.j2' dest='/etc/mysql/mariadb.conf.d/99-openstack.cnf' backup=yes
-    notify:
-      - restart mysql
+
+  - service: name=mysql state=restarted
 
   - name: Reload privilege tables
     command: 'mysql -ne "{{ item }}"'
@@ -42,6 +42,7 @@
        mysql_db_pass: "root{{ 100 | random }}"
     run_once: yes
 
+  - shell: apt-get install -y python-dev libmysqlclient-dev; pip install MySQL-python
   - name: Update the db root credentials
     mysql_user: name=root host={{ item }} password={{mysql_db_pass}}
     with_items:

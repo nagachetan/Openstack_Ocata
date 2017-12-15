@@ -1,7 +1,7 @@
 ---
 
   - name: Install memcached pkgs
-    apt: name="{{item}}" update_cache=yes state=present
+    shell: apt-get -y install "{{item}}" 
     with_items:
         - memcached
         - python-memcache
@@ -12,7 +12,7 @@
        state: present
        regexp: '^-l.*'
        line: "-l {{controller_ip}}"
-    notify:
-      - restart memcached
+
+  - service: name=memcached state=restarted
 
 
