@@ -18,16 +18,16 @@
         - { cmd: 'openstack user create --domain default --password {{glance.user_password}} glance' }
         - { cmd: 'openstack role add --project service --user glance admin' }
         - { cmd: 'openstack service create --name glance --description "OpenStack Image" image' }
-        - { cmd: 'openstack endpoint create --region RegionOne image public http://controller:9292' }
-        - { cmd: 'openstack endpoint create --region RegionOne image internal http://controller:9292' }
-        - { cmd: 'openstack endpoint create --region RegionOne image admin http://controller:9292' }
+        - { cmd: 'openstack endpoint create --region RegionOne image public http://{{hostname_controller}}:9292' }
+        - { cmd: 'openstack endpoint create --region RegionOne image internal http://{{hostname_controller}}:9292' }
+        - { cmd: 'openstack endpoint create --region RegionOne image admin http://{{hostname_controller}}:9292' }
     environment:
           OS_USERNAME: admin
           OS_PASSWORD: ADMIN_PASS
           OS_PROJECT_NAME: admin
           OS_USER_DOMAIN_NAME: Default
           OS_PROJECT_DOMAIN_NAME: Default
-          OS_AUTH_URL: http://controller:35357/v3
+          OS_AUTH_URL: http://{{hostname_controller}}:35357/v3
           OS_IDENTITY_API_VERSION: 3
     
   - name: Install all the glance packages
@@ -39,16 +39,16 @@
     ini_file: dest=/etc/glance/glance-api.conf
                section=database
                option=connection
-               value="mysql+pymysql://glance:{{glance.db_password}}@controller/glance"
+               value="mysql+pymysql://glance:{{glance.db_password}}@{{hostname_controller}}/glance"
                
   - ini_file: dest=/etc/glance/glance.conf
                section=keystone_authtoken
                option={{item.opt}}
                value={{item.val}}
     with_items:
-        - { opt: "auth_uri", val: "http://controller:5000" }
-        - { opt: "auth_url", val: "http://controller:35357" }
-        - { opt: "memcached_servers", val: "controller:11211" }
+        - { opt: "auth_uri", val: "http://{{hostname_controller}}:5000" }
+        - { opt: "auth_url", val: "http://{{hostname_controller}}:35357" }
+        - { opt: "memcached_servers", val: "{{hostname_controller}}:11211" }
         - { opt: "auth_type", val: "password" }
         - { opt: "project_domain_name", val: "default" }
         - { opt: "user_domain_name", val: "default" }
@@ -64,16 +64,16 @@
   - ini_file: dest=/etc/glance/glance-registry.conf
                section=database
                option=connection
-               value="mysql+pymysql://glance:{{glance.db_password}}@controller/glance"
+               value="mysql+pymysql://glance:{{glance.db_password}}@{{hostname_controller}}/glance"
                
   - ini_file: dest=/etc/glance/glance-registry.conf
                section=keystone_authtoken
                option={{item.opt}}
                value={{item.val}}
     with_items:
-        - { opt: "auth_uri", val: "http://controller:5000" }
-        - { opt: "auth_url", val: "http://controller:35357" }
-        - { opt: "memcached_servers", val: "controller:11211" }
+        - { opt: "auth_uri", val: "http://{{hostname_controller}}:5000" }
+        - { opt: "auth_url", val: "http://{{hostname_controller}}:35357" }
+        - { opt: "memcached_servers", val: "{{hostname_controller}}:11211" }
         - { opt: "auth_type", val: "password" }
         - { opt: "project_domain_name", val: "default" }
         - { opt: "user_domain_name", val: "default" }

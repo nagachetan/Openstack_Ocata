@@ -1,7 +1,7 @@
 ---
 
   - name: Install openstack pkgs
-    shell: apt-get install "{{item}}" 
+    shell: apt-get -y install "{{item}}" 
     with_items:
         - software-properties-common
   

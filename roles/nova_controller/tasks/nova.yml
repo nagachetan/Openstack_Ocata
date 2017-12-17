@@ -27,22 +27,22 @@
         - { cmd: 'openstack user create --domain default --password {{nova.user_password}} nova' }
         - { cmd: 'openstack role add --project service --user nova admin' }
         - { cmd: 'openstack service create --name nova --description "OpenStack Compute" compute' }
-        - { cmd: 'openstack endpoint create --region RegionOne compute public http://controller:8774/v2.1' }
-        - { cmd: 'openstack endpoint create --region RegionOne compute internal http://controller:8774/v2.1' }
-        - { cmd: 'openstack endpoint create --region RegionOne compute admin http://controller:8774/v2.1' }
+        - { cmd: 'openstack endpoint create --region RegionOne compute public http://{{hostname_controller}}:8774/v2.1' }
+        - { cmd: 'openstack endpoint create --region RegionOne compute internal http://{{hostname_controller}}:8774/v2.1' }
+        - { cmd: 'openstack endpoint create --region RegionOne compute admin http://{{hostname_controller}}:8774/v2.1' }
         - { cmd: 'openstack user create --domain default --password {{nova.placement_pass}} placement' }
         - { cmd: 'openstack role add --project service --user placement admin' }
         - { cmd: 'openstack service create --name placement --description "Placement API" placement' }
-        - { cmd: 'openstack endpoint create --region RegionOne placement public http://controller:8778' }
-        - { cmd: 'openstack endpoint create --region RegionOne placement internal http://controller:8778' }
-        - { cmd: 'openstack endpoint create --region RegionOne placement admin http://controller:8778' }
+        - { cmd: 'openstack endpoint create --region RegionOne placement public http://{{hostname_controller}}:8778' }
+        - { cmd: 'openstack endpoint create --region RegionOne placement internal http://{{hostname_controller}}:8778' }
+        - { cmd: 'openstack endpoint create --region RegionOne placement admin http://{{hostname_controller}}:8778' }
     environment:
           OS_USERNAME: admin
           OS_PASSWORD: ADMIN_PASS
           OS_PROJECT_NAME: admin
           OS_USER_DOMAIN_NAME: Default
           OS_PROJECT_DOMAIN_NAME: Default
-          OS_AUTH_URL: http://controller:35357/v3
+          OS_AUTH_URL: http://{{hostname_controller}}:35357/v3
           OS_IDENTITY_API_VERSION: 3
 
   - name: Install all the nova packages
@@ -61,15 +61,15 @@
                option=connection
                value="{{item.value}}"
     with_items: 
-        - { section: 'api_database', value: "mysql+pymysql://nova:{{nova.db_password}}@controller/nova_api" }
-        - { section: 'database', value: "mysql+pymysql://nova:{{nova.db_password}}@controller/nova" }
+        - { section: 'api_database', value: "mysql+pymysql://nova:{{nova.db_password}}@{{hostname_controller}}/nova_api" }
+        - { section: 'database', value: "mysql+pymysql://nova:{{nova.db_password}}@{{hostname_controller}}/nova" }
                
   - ini_file: dest=/etc/nova/nova.conf
                section=DEFAULT
                option="{{item.opt}}"
                value="{{item.val}}"
     with_items:
-        - { opt: "transport_url", val: "rabbit://openstack:{{rabbit_pass}}@controller" }
+        - { opt: "transport_url", val: "rabbit://openstack:{{rabbit_pass}}@{{hostname_controller}}" }
         - { opt: "my_ip", val: "{{controller_ip}}" }
         - { opt: "use_neutron", val: "True" }
         - { opt: "firewall_driver", val: "nova.virt.firewall.NoopFirewallDriver" }               
@@ -84,9 +84,9 @@
                option={{item.opt}}
                value={{item.val}}
     with_items:
-        - { opt: "auth_uri", val: "http://controller:5000" }
-        - { opt: "auth_url", val: "http://controller:35357" }
-        - { opt: "memcached_servers", val: "controller:11211" }
+        - { opt: "auth_uri", val: "http://{{hostname_controller}}:5000" }
+        - { opt: "auth_url", val: "http://{{hostname_controller}}:35357" }
+        - { opt: "memcached_servers", val: "{{hostname_controller}}:11211" }
         - { opt: "auth_type", val: "password" }
         - { opt: "project_domain_name", val: "default" }
         - { opt: "user_domain_name", val: "default" }
@@ -107,7 +107,7 @@
   - ini_file: dest=/etc/nova/nova.conf
                section=glance
                option=api_servers
-               value="http://controller:9292"
+               value="http://{{hostname_controller}}:9292"
                
   - ini_file: dest=/etc/nova/nova.conf
                section=oslo_concurrency
@@ -124,7 +124,7 @@
         - { opt: "project_name", val: "service" }
         - { opt: "auth_type", val: "password" }
         - { opt: "user_domain_name", val: "Default" }
-        - { opt: "auth_url", val: "http://controller:35357/v3" }
+        - { opt: "auth_url", val: "http://{{hostname_controller}}:35357/v3" }
         - { opt: "username", val: "placement" }
         - { opt: "password", val: "{{nova.placement_pass}}" }
  

@@ -18,16 +18,16 @@
         - { cmd: 'openstack user create --domain default --password {{neutron.user_password}} neutron' }
         - { cmd: 'openstack role add --project service --user neutron admin' }
         - { cmd: 'openstack service create --name neutron --description "OpenStack Neutron" network' }
-        - { cmd: 'openstack endpoint create --region RegionOne network public http://controller:9696' }
-        - { cmd: 'openstack endpoint create --region RegionOne network internal http://controller:9696' }
-        - { cmd: 'openstack endpoint create --region RegionOne network admin http://controller:9696' }
+        - { cmd: 'openstack endpoint create --region RegionOne network public http://{{hostname_controller}}:9696' }
+        - { cmd: 'openstack endpoint create --region RegionOne network internal http://{{hostname_controller}}:9696' }
+        - { cmd: 'openstack endpoint create --region RegionOne network admin http://{{hostname_controller}}:9696' }
     environment:
           OS_USERNAME: admin
           OS_PASSWORD: ADMIN_PASS
           OS_PROJECT_NAME: admin
           OS_USER_DOMAIN_NAME: Default
           OS_PROJECT_DOMAIN_NAME: Default
-          OS_AUTH_URL: http://controller:35357/v3
+          OS_AUTH_URL: http://{{hostname_controller}}:35357/v3
           OS_IDENTITY_API_VERSION: 3
     
   - name: Install all the network packages
@@ -44,16 +44,16 @@
     ini_file: dest=/etc/neutron/neutron.conf
                section=database
                option=connection
-               value="mysql+pymysql://neutron:{{neutron.db_password}}@controller/neutron"
+               value="mysql+pymysql://neutron:{{neutron.db_password}}@{{hostname_controller}}/neutron"
                
   - ini_file: dest=/etc/neutron/neutron.conf
                section=keystone_authtoken
                option={{item.opt}}
                value={{item.val}}
     with_items:
-        - { opt: "auth_uri", val: "http://controller:5000" }
-        - { opt: "auth_url", val: "http://controller:35357" }
-        - { opt: "memcached_servers", val: "controller:11211" }
+        - { opt: "auth_uri", val: "http://{{hostname_controller}}:5000" }
+        - { opt: "auth_url", val: "http://{{hostname_controller}}:35357" }
+        - { opt: "memcached_servers", val: "{{hostname_controller}}:11211" }
         - { opt: "auth_type", val: "password" }
         - { opt: "project_domain_name", val: "default" }
         - { opt: "user_domain_name", val: "default" }
@@ -69,7 +69,7 @@
         - { opt: "core_plugin", val: "ml2" }
         - { opt: "service_plugins", val: "router" }
         - { opt: "allow_overlapping_ips", val: "true" }
-        - { opt: "transport_url", val: "rabbit://openstack:{{rabbit_pass}}@controller" }
+        - { opt: "transport_url", val: "rabbit://openstack:{{rabbit_pass}}@{{hostname_controller}}" }
         - { opt: "auth_strategy", val: "keystone" }
         - { opt: "notify_nova_on_port_status_changes", val: "true" }
         - { opt: "notify_nova_on_port_data_changes", val: "true" }
@@ -79,7 +79,7 @@
                option={{item.opt}}
                value={{item.val}}
     with_items:
-        - { opt: "auth_url", val: "http://controller:35357" }
+        - { opt: "auth_url", val: "http://{{hostname_controller}}:35357" }
         - { opt: "auth_type", val: "password" }
         - { opt: "project_domain_name", val: "default" }
         - { opt: "user_domain_name", val: "default" }
