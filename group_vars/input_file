@@ -1,5 +1,6 @@
-controller_ip: 192.168.56.104
-block_storage_ip: 192.168.56.104
+controller_ip: 192.168.56.102
+block_storage_ip: 192.168.56.102
+compute_ip: 192.168.56.102
 
 # Hostname of controller node
 hostname_controller: controller

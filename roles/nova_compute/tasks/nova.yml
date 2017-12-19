@@ -1,7 +1,7 @@
 ---
 
   - name: Install and Configure Compute node
-    apt: name=nova-compute state=present
+    shell: apt-get install -y nova-compute
 
   - name: Update /etc/nova/nova.conf
     ini_file: dest=/etc/nova/nova.conf
@@ -55,6 +55,6 @@
                option=virt_type
                value=qemu
 
-  - service: name=nova-compute state=restart
+  - service: name=nova-compute state=restarted
 
 
