@@ -4,7 +4,7 @@
     apt: name=nova-compute state=present
 
   - name: Update /etc/nova/nova.conf
-    ini_file2: dest=/etc/nova/nova.conf
+    ini_file: dest=/etc/nova/nova.conf
                section="{{item.section}}"
                option="{{item.opt}}"
                value="{{item.value}}"
@@ -21,7 +21,7 @@
         - { section: 'glance', opt: 'api_servers', value: 'http://controller:9292' } 
         - { section: 'oslo_concurrency', opt: 'lock_path', value: '/var/lib/nova/tmp' } 
          
-  - ini_file2: dest=/etc/nova/nova.conf
+  - ini_file: dest=/etc/nova/nova.conf
                section=keystone_authtoken
                option={{item.opt}}
                value={{item.val}}
@@ -36,7 +36,7 @@
         - { opt: "username", val: "nova" }
         - { opt: "password", val: "{{nova.password}}" }
 
-  - ini_file2: dest=/etc/nova/nova.conf
+  - ini_file: dest=/etc/nova/nova.conf
                section=placement
                option={{item.opt}}
                value={{item.val}}
@@ -50,7 +50,7 @@
         - { opt: "username", val: "placement" }
         - { opt: "password", val: "nova.placement_pass" }
 
-  - ini_file2: dest=/etc/nova/nova-compute.conf
+  - ini_file: dest=/etc/nova/nova-compute.conf
                section=libvirt
                option=virt_type
                value=qemu
