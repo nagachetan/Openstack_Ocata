@@ -1,7 +1,7 @@
 ---
 
   - name: Install the Components
-    apt: name="neutron-linuxbridge-agent" state=present
+    shell: apt-get install -y neutron-linuxbridge-agent
 
   - ini_file: dest=/etc/neutron/neutron.conf
                section=DEFAULT

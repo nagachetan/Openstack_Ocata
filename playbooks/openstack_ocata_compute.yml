@@ -12,6 +12,8 @@
      roles:
        - name: Install openstack packages 
          role: ../roles/openstack_pkgs
+       - name: Install neutron for compute
+         role: ../roles/network_compute
        - name: Install nova
          role: ../roles/nova_compute
        
