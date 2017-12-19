@@ -22,6 +22,8 @@
          role: ../roles/keystone
        - name: Install glance
          role: ../roles/glance
+       - name: Install Neutron
+         role: ../roles/network_controller
        - name: Install nova
          role: ../roles/nova_controller
        - name: Install cinder

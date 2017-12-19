@@ -144,6 +144,7 @@
                section=DEFAULT
                option={{item.opt}}
                value={{item.val}}
+    with_items:
         - { opt: "interface_driver", val: "linuxbridge" }
         - { opt: "dhcp_driver", val: "neutron.agent.linux.dhcp.Dnsmasq" }
         - { opt: "enable_isolated_metadata", val: "true" }
