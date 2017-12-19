@@ -1,3 +1,3 @@
 mysql -u root -p{{mysql_db_pass}} -e "GRANT ALL PRIVILEGES ON {{neutron_db_name}}.* TO '{{neutron_db_name}}'@'localhost' IDENTIFIED BY '{{neutron.db_password}}';"
 
-mysql -u root -p{{mysql_db_pass}} -e "GRANT ALL PRIVILEGES ON {{neutron_db_name}}.* TO {{neutron_db_name}}'@'%' IDENTIFIED BY '{{neutron.db_password}}';"
+mysql -u root -p{{mysql_db_pass}} -e "GRANT ALL PRIVILEGES ON {{neutron_db_name}}.* TO '{{neutron_db_name}}'@'%' IDENTIFIED BY '{{neutron.db_password}}';"

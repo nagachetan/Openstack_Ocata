@@ -1,5 +1,8 @@
-controller_ip: 10.10.0.11
-block_storage_ip: 10.10.0.13
+controller_ip: 192.168.56.104
+block_storage_ip: 192.168.56.104
+
+# Hostname of controller node
+hostname_controller: controller
 
 # Output file 
 output_file: /opt/ostack/output.txt

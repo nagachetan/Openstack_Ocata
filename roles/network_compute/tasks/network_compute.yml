@@ -8,7 +8,7 @@
                option={{item.opt}}
                value={{item.val}}
     with_items:
-        - { opt: "transport_url", val: "rabbit://openstack:{{rabbit_pass}}@controller" }
+        - { opt: "transport_url", val: "rabbit://openstack:{{rabbit_pass}}@{{hostname_controller}}" }
         - { opt: "auth_strategy", val: "keystone" }
 
   - ini_file: dest=/etc/neutron/neutron.conf
@@ -16,9 +16,9 @@
                option={{item.opt}}
                value={{item.val}}
     with_items:
-        - { opt: "auth_uri", val: "http://controller:5000" }
-        - { opt: "auth_url", val: "http://controller:35357" }
-        - { opt: "memcached_servers", val: "controller:11211" }
+        - { opt: "auth_uri", val: "http://{{hostname_controller}}:5000" }
+        - { opt: "auth_url", val: "http://{{hostname_controller}}:35357" }
+        - { opt: "memcached_servers", val: "{{hostname_controller}}:11211" }
         - { opt: "auth_type", val: "password" }
         - { opt: "project_domain_name", val: "default" }
         - { opt: "user_domain_name", val: "default" }
@@ -53,8 +53,8 @@
                option={{item.opt}}
                value={{item.val}}
     with_items:
-        - { opt: "url", val: "http://controller:9696" }
-        - { opt: "auth_url", val: "http://controller:35357" }
+        - { opt: "url", val: "http://{{hostname_controller}}:9696" }
+        - { opt: "auth_url", val: "http://{{hostname_controller}}:35357" }
         - { opt: "auth_type", val: "password" }
         - { opt: "project_domain_name", val: "default" }
         - { opt: "user_domain_name", val: "default" }

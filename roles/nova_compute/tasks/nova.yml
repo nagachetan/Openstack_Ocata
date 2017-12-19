@@ -9,7 +9,7 @@
                option="{{item.opt}}"
                value="{{item.value}}"
     with_items:
-        - { section: 'DEFAULT', opt: "transport_url", value: "rabbit://openstack:RABBIT_PASS@controller" }
+        - { section: 'DEFAULT', opt: "transport_url", value: "rabbit://openstack:RABBIT_PASS@{{hostname_controller}}" }
         - { section: 'api', opt: "auth_strategy", value: "keystone" }
         - { section: 'DEFAULT', opt: 'my_ip', value: "{{compute_ip}}" } 
         - { section: 'DEFAULT', opt: 'use_neutron', value: 'True' } 
@@ -17,8 +17,8 @@
         - { section: 'vnc', opt: 'enabled', value: 'True' } 
         - { section: 'vnc', opt: 'vncserver_listen', value: '0.0.0.0' } 
         - { section: 'vnc', opt: 'vncserver_proxyclient_address', value: '$my_ip' } 
-        - { section: 'vnc', opt: 'novncproxy_base_url', value: 'http://controller:6080/vnc_auto.html' } 
-        - { section: 'glance', opt: 'api_servers', value: 'http://controller:9292' } 
+        - { section: 'vnc', opt: 'novncproxy_base_url', value: 'http://{{hostname_controller}}:6080/vnc_auto.html' } 
+        - { section: 'glance', opt: 'api_servers', value: 'http://{{hostname_controller}}:9292' } 
         - { section: 'oslo_concurrency', opt: 'lock_path', value: '/var/lib/nova/tmp' } 
          
   - ini_file: dest=/etc/nova/nova.conf
@@ -26,9 +26,9 @@
                option={{item.opt}}
                value={{item.val}}
     with_items:
-        - { opt: "auth_uri", val: "http://controller:5000" }
-        - { opt: "auth_url", val: "http://controller:35357" }
-        - { opt: "memcached_servers", val: "controller:11211" }
+        - { opt: "auth_uri", val: "http://{{hostname_controller}}:5000" }
+        - { opt: "auth_url", val: "http://{{hostname_controller}}:35357" }
+        - { opt: "memcached_servers", val: "{{hostname_controller}}:11211" }
         - { opt: "auth_type", val: "password" }
         - { opt: "project_domain_name", val: "default" }
         - { opt: "user_domain_name", val: "default" }
@@ -46,7 +46,7 @@
         - { opt: "project_name", val: "service" }
         - { opt: "auth_type", val: "password" }
         - { opt: "user_domain_name", val: "Default" }
-        - { opt: "auth_url", val: "http://controller:35357/v3" }
+        - { opt: "auth_url", val: "http://{{hostname_controller}}:35357/v3" }
         - { opt: "username", val: "placement" }
         - { opt: "password", val: "nova.placement_pass" }
 

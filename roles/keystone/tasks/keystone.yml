@@ -21,7 +21,7 @@
     ini_file: dest=/etc/keystone/keystone.conf
                section=database
                option=connection
-               value="mysql+pymysql://keystone:{{keystone.db_password}}@controller/keystone"
+               value="mysql+pymysql://keystone:{{keystone.db_password}}@{{hostname_controller}}1/keystone"
                
   - ini_file: dest=/etc/keystone/keystone.conf
                section=token
@@ -39,13 +39,13 @@
   - name: Bootstrap the keystone service
     shell: |
          keystone-manage bootstrap --bootstrap-password {{keystone.bootstrap_pass}} \
-         --bootstrap-admin-url http://controller:35357/v3/ \
-         --bootstrap-internal-url http://controller:5000/v3/ \
-         --bootstrap-public-url http://controller:5000/v3/ \
+         --bootstrap-admin-url http://{{hostname_controller}}:35357/v3/ \
+         --bootstrap-internal-url http://{{hostname_controller}}:5000/v3/ \
+         --bootstrap-public-url http://{{hostname_controller}}:5000/v3/ \
          --bootstrap-region-id RegionOne
 
   - name: Configure apache http server
-    lineinfile: dest=/etc/apache2/apache2.conf  line='ServerName controller'
+    lineinfile: dest=/etc/apache2/apache2.conf  line="ServerName {{hostname_controller}}"
 
   - service: name=apache2 state=restarted
 
