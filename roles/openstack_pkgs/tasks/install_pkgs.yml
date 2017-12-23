@@ -6,10 +6,16 @@
         - software-properties-common
   
   - name: Add the apt repo
-    shell: add-apt-repository cloud-archive:ocata
+    shell: add-apt-repository -y cloud-archive:ocata
 #  - shell: apt update && apt dist-upgrade
 #  - apt: update_cache=yes upgrade=dist
 
   - shell: apt-get install -y python-openstackclient 
 
-#  - file: path={{output}} state=touch
+  - name: create the output path
+    shell: "echo {{output_file}} | rev | cut -d'/' -f2-  | rev"
+    register: op
+  
+  - file: path={{op.stdout}} state=directory
+
+  - file: path={{output_file}} state=touch
