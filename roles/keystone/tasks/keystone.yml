@@ -44,6 +44,26 @@
          --bootstrap-public-url http://{{hostname_controller}}:5000/v3/ \
          --bootstrap-region-id RegionOne
 
+  - file: path={{items}} state=directory
+    with_item: 
+        - '/etc/apache2/conf.d'
+        - '/etc/sysconfig'
+
+  - file: path={{items}} state=touch
+    with_item: 
+        - '/etc/apache2/conf.d/wsgi-keystone.conf'
+        - '/etc/sysconfig/apache2'
+
+  - name: Update APACHE_SERVERNAME
+    lineinfile: dest='/etc/sysconfig/apache2' line="APACHE_SERVERNAME=\"{{hostname_controller}}\""
+
+  - template: src=../templates/wsgi_keystone.j2 dest='/etc/apache2/conf.d/wsgi-keystone.conf'
+
+  - shell: |
+        chown -R keystone:keystone /etc/keystone 
+        systemctl enable apache2.service
+        systemctl start apache2.service
+
   - name: Configure apache http server
     lineinfile: dest=/etc/apache2/apache2.conf  line="ServerName {{hostname_controller}}"
 
