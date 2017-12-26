@@ -7,7 +7,9 @@
   
   - name: Add the apt repo
     shell: add-apt-repository -y cloud-archive:ocata
+
 #  - shell: apt update && apt dist-upgrade
+#    ignore_errors: yes
 #  - apt: update_cache=yes upgrade=dist
 
   - shell: apt-get install -y python-openstackclient 

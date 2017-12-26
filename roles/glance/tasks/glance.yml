@@ -31,7 +31,7 @@
           OS_IDENTITY_API_VERSION: 3
     
   - name: Install all the glance packages
-    shell: apt-get install {{ item }} 
+    shell: apt-get -y install {{ item }} 
     with_items:
         - glance
 

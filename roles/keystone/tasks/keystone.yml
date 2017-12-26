@@ -21,7 +21,7 @@
     ini_file: dest=/etc/keystone/keystone.conf
                section=database
                option=connection
-               value="mysql+pymysql://keystone:{{keystone.db_password}}@{{hostname_controller}}1/keystone"
+               value="mysql+pymysql://keystone:{{keystone.db_password}}@{{hostname_controller}}/keystone"
                
   - ini_file: dest=/etc/keystone/keystone.conf
                section=token
