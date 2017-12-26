@@ -1,0 +1,4 @@
+---
+
+  - include: install_ovs.yml
+  - include: configure_ovs.yml

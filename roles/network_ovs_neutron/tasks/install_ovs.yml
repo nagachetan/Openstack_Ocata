@@ -1,0 +1,14 @@
+---
+
+  # check for the existance of openvswitch-switch package and install if absent
+  - name: Verify the presence of openvswitch-switch 
+    apt: pkg={{item}} state=latest update_cache=yes
+    when: ansible_distribution == "Debian" or ansible_distribution == "Ubuntu" 
+    with_items:
+       - openvswitch-common
+       - openvswitch-switch    
+
+  - yum: name=openvswitch-switch state=installed update_cache=yes
+    when: ansible_distribution == "CentOS" or ansible_distribution == "RedHat" 
+
+

@@ -1,0 +1,21 @@
+---
+
+  - name: Update configuration for OVS
+    ini_file: dest="{{item.dest}}"
+               section="{{item.section}}"
+               option="{{item.opt}}"
+               value="{{item.value}}"
+    with_items:
+        - { dest: '/etc/neutron/neutron.conf', section: 'DEFAULT', opt: "service_plugins", value: "router" }
+        - { dest: '/etc/neutron/neutron.conf', section: 'DEFAULT', opt: "allow_overlapping_ips", value: "True" }
+        - { dest: '/etc/neutron/plugins/ml2/ml2_conf.ini', section: 'ml2', opt: "type_drivers", value: "flat,vlan,vxlan" }
+        - { dest: '/etc/neutron/plugins/ml2/ml2_conf.ini', section: 'ml2', opt: "tenant_network_types", value: "vxlan" }
+        - { dest: '/etc/neutron/plugins/ml2/ml2_conf.ini', section: 'ml2', opt: "mechanism_drivers", value: "openvswitch,l2population" }
+        - { dest: '/etc/neutron/plugins/ml2/ml2_conf.ini', section: 'ml2_type_vxlan', opt: "vni_ranges", value: "1:1000" }
+
+  - name: Restart the Neutron server and OVS agent
+    shell: service neutron-server restart ; service neutron-openvswitch-agent restart 
+
+
+        
+    

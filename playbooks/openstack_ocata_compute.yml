@@ -14,6 +14,8 @@
          role: ../roles/openstack_pkgs
        - name: Install neutron for compute
          role: ../roles/network_compute
+       - name: Install OVS on compute
+         role: ../roles/network_ovs_compute 
        - name: Install nova
          role: ../roles/nova_compute
        

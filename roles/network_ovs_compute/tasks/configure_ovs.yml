@@ -1,0 +1,44 @@
+---
+
+  - name: Update config file
+    ini_file: dest="{{item.dest}}"
+               section="{{item.section}}"
+               option="{{item.opt}}"
+               value="{{item.value}}"
+    with_items:
+        - { dest: '/etc/neutron/plugins/ml2/openvswitch_agent.ini', section: 'ovs', opt: "local_ip", value: "{{overlay_interface_ip}}" }
+        - { dest: '/etc/neutron/plugins/ml2/openvswitch_agent.ini', section: 'agent', opt: "tunnel_types", value: "vxlan" }
+        - { dest: '/etc/neutron/plugins/ml2/openvswitch_agent.ini', section: 'agent', opt: "l2_population", value: "True" }
+
+  - name: Restart the Neutron server and OVS agent
+    shell: service neutron-openvswitch-agent restart
+     
+  - name: Verify presense and operation of the agents
+    shell: openstack network agent list
+    register: op 
+    environment:
+          OS_USERNAME: admin
+          OS_PASSWORD: ADMIN_PASS
+          OS_PROJECT_NAME: admin
+          OS_USER_DOMAIN_NAME: Default
+          OS_PROJECT_DOMAIN_NAME: Default
+          OS_AUTH_URL: http://controller:35357/v3
+          OS_IDENTITY_API_VERSION: 3
+
+  - debug: msg="openstack network agent list : {{op.stdout}}"
+
+  - name: Update the provider network to support external connectivity
+    shell: {{items}}
+    with_items: 
+        - "openstack network set --external provider1"
+        - "openstack network create selfservice1"
+        - "openstack subnet create --subnet-range {{subnet_range}}  --network selfservice1 --dns-nameserver {{dns_nameserver}} selfservice1-v4"
+        - "openstack router create router1"
+        - "openstack router add subnet router1 selfservice1-v4"
+        - "neutron router-gateway-set router1 provider1"     
+        - "openstack security group rule create --proto icmp default"
+        - "openstack security group rule create --ethertype IPv6 --proto ipv6-icmp default"
+        - "openstack security group rule create --proto tcp --dst-port 22 default"
+        - "openstack security group rule create --ethertype IPv6 --proto tcp --dst-port 22 default"
+        
+

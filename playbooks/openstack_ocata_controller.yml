@@ -26,6 +26,10 @@
          role: ../roles/network_controller
        - name: Install nova
          role: ../roles/nova_controller
+       - name: Install OVS - Controller node
+         role: ../roles/network_ovs_controller
+       - name: Install OVS - Network node
+         role: ../roles/network_ovs_neutron
        - name: Install cinder
          role: ../roles/cinder_controller
        
