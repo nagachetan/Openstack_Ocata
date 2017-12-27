@@ -41,7 +41,7 @@
                option=connection
                value="mysql+pymysql://glance:{{glance.db_password}}@{{hostname_controller}}/glance"
                
-  - ini_file: dest=/etc/glance/glance.conf
+  - ini_file: dest=/etc/glance/glance-api.conf
                section=keystone_authtoken
                option={{item.opt}}
                value={{item.val}}
@@ -89,7 +89,7 @@
   - name: Populate the glance database
     shell: su -s /bin/sh -c "glance-manage db_sync" glance
 
-  - service: name={{item}} state=restart
+  - service: name={{item}} state=restarted
     with_items:
         - glance-registry
         - glance-api

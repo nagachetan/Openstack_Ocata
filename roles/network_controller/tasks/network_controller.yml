@@ -124,7 +124,7 @@
                value={{item.val}}
     with_items:
         - { opt: "enable_vxlan", val: "true" }
-        - { opt: "local_ip", val: "{{neutron.overlay_interface_ip" }
+        - { opt: "local_ip", val: "{{neutron.overlay_interface_ip}}" }
         - { opt: "l2_population", val: "true" }
                
   - ini_file: dest=/etc/neutron/plugins/ml2/linuxbridge_agent.ini

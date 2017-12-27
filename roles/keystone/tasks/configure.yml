@@ -8,7 +8,7 @@
         - { cmd: 'openstack user create --domain default --password {{keystone.user_password}} demo' }
         - { cmd: 'openstack role create user' }
         - { cmd: 'openstack role add --project demo --user demo user' }
-        - { cmd: ' openstack --os-auth-url http://controller:35357/v3 --os-project-domain-name default --os-user-domain-name default --os-project-name admin --os-username admin token issue'
+        - { cmd: ' openstack token issue'}
     environment:
           OS_USERNAME: admin
           OS_PASSWORD: ADMIN_PASS
