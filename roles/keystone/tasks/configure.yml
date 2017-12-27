@@ -8,7 +8,7 @@
         - { cmd: 'openstack user create --domain default --password {{keystone.user_password}} demo' }
         - { cmd: 'openstack role create user' }
         - { cmd: 'openstack role add --project demo --user demo user' }
-        - { cmd: ' openstack token issue'}
+        - { cmd: 'openstack token issue'}
     environment:
           OS_USERNAME: admin
           OS_PASSWORD: ADMIN_PASS
