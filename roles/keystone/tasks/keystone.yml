@@ -44,13 +44,13 @@
          --bootstrap-public-url http://{{hostname_controller}}:5000/v3/ \
          --bootstrap-region-id RegionOne
 
-  - file: path={{items}} state=directory
-    with_item: 
+  - file: path={{item}} state=directory
+    with_items: 
         - '/etc/apache2/conf.d'
         - '/etc/sysconfig'
 
-  - file: path={{items}} state=touch
-    with_item: 
+  - file: path={{item}} state=touch
+    with_items: 
         - '/etc/apache2/conf.d/wsgi-keystone.conf'
         - '/etc/sysconfig/apache2'
 
