@@ -18,6 +18,8 @@
     shell: "echo {{output_file}} | rev | cut -d'/' -f2-  | rev"
     register: op
   
+  - shell: apt-get install -y crudini 
+
   - file: path={{op.stdout}} state=directory
 
   - file: path={{output_file}} state=touch

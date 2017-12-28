@@ -61,6 +61,13 @@
                option=flavor
                value="keystone"
                
+  - shell: | 
+        crudini --del /etc/glance/glance-api.conf database sqlite_db 
+        crudini --del /etc/glance/glance-api.conf database backend
+        crudini --del /etc/glance/glance-registry.conf database sqlite_db
+        crudini --del /etc/glance/glance-registry.conf database backend
+    ignore_errors: yes
+
   - ini_file: dest=/etc/glance/glance-registry.conf
                section=database
                option=connection
